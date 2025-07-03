@@ -2,17 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Google Search Console Verification -->
+  <meta name="google-site-verification" content="HmrQI75qn05QeBTgDEbJJQKnjqgQcUkUvSIY1UlAgJU" />
+  
   <title>QuickPaste – Instantly Copy Text & Media</title>
   <meta name="description" content="Paste text, images, or videos and generate a code to access them from any device. No login needed.">
   <meta name="robots" content="index, follow">
+  <meta property="og:title" content="QuickPaste" />
+  <meta property="og:description" content="Send text or media across devices instantly with a short code." />
+  <meta property="og:url" content="https://yourusername.github.io/quickpaste/" />
+  <meta property="og:type" content="website" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXX" crossorigin="anonymous" async></script>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <!-- QRious for QR code generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  
+  <!-- Google AdSense (replace ca-pub and slot with your real IDs) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXX" crossorigin="anonymous"></script>
 
   <style>
+    /* Your existing styles */
     * {
       box-sizing: border-box;
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
     }
     html {
       scroll-behavior: smooth;
@@ -30,7 +50,7 @@
     .container {
       background: white;
       border-radius: 2rem;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
       padding: 2rem;
       width: 100%;
       max-width: 520px;
@@ -97,7 +117,7 @@
       font-size: 1.1rem;
       cursor: pointer;
       transition: background 0.3s ease, transform 0.2s ease;
-      box-shadow: 0 8px 20px rgba(100,149,237,0.3);
+      box-shadow: 0 8px 20px rgba(100, 149, 237, 0.3);
     }
     button:hover {
       background: #4b80e4;
@@ -114,8 +134,10 @@
     }
     .dropzone {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       border-radius: 2rem;
       border: 2px dashed #6495ed;
       display: none;
@@ -125,26 +147,6 @@
       color: #6495ed;
       background: rgba(100, 149, 237, 0.05);
       z-index: 10;
-    }
-    #manualCodeInput {
-      padding: 0.5rem 1rem;
-      border-radius: 1rem;
-      border: 2px solid #ccc;
-      width: 60%;
-      font-size: 1rem;
-    }
-    #manualLoadBtn {
-      padding: 0.5rem 1.5rem;
-      border-radius: 2rem;
-      background: #6495ed;
-      color: #fff;
-      border: none;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-left: 0.5rem;
-    }
-    #manualLoadBtn:hover {
-      background: #4b80e4;
     }
     @keyframes fadeInSlide {
       from { opacity: 0; transform: translateY(20px); }
@@ -165,13 +167,6 @@
     <div class="dropzone" id="dropZone">Drop image to paste</div>
     <h1><i class="fa-solid fa-paper-plane"></i> QuickPaste</h1>
     <textarea id="input" placeholder="Paste text, image or video link..."></textarea>
-
-    <!-- Manual code input to load paste -->
-    <div style="margin-top: 1rem;">
-      <input id="manualCodeInput" type="text" placeholder="Enter code to load" />
-      <button id="manualLoadBtn" onclick="loadCodeFromInput()">Load</button>
-    </div>
-
     <div class="code-display" id="code">Code: <span id="codeValue">-</span></div>
     <div class="media-preview" id="mediaPreview"></div>
     <div class="qr" id="qrSection" style="display: none;">
@@ -181,7 +176,7 @@
     <button onclick="generateCode()">Generate Code</button>
 
     <div class="ad-block">
-      <!-- Replace ca-pub-XXXXXX and SLOT_ID after AdSense approval -->
+      <!-- Replace ca-pub-XXXXXX and SLOT_ID with your AdSense values -->
       <ins class="adsbygoogle"
            style="display:block"
            data-ad-client="ca-pub-XXXXXX"
@@ -194,15 +189,8 @@
     <div class="footer">Now supports drag & drop for images, text, and video links. All free, no login.</div>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <!-- QRious for QR code -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-
   <script>
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDO6gyB_GMN8XOSjzIXfyTtbs4SjYgaAls",
       authDomain: "quickpaste-af1b8.firebaseapp.com",
@@ -212,32 +200,28 @@
       appId: "1:197671751474:web:01e45e024c2bb47831112b",
       measurementId: "G-YNKFMGH0LE"
     };
-
     firebase.initializeApp(firebaseConfig);
     firebase.analytics();
     const db = firebase.firestore();
 
-    async function generateCode() {
-      const input = document.getElementById('input').value.trim();
+    function generateCode(contentOverride = null) {
+      const input = contentOverride || document.getElementById('input').value.trim();
       if (!input) {
         alert('Please enter some text or link first.');
         return;
       }
-
       const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-      try {
-        await db.collection('pastes').doc(code).set({
-          content: input,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      const url = `${window.location.origin + window.location.pathname}?code=${code}`;
+      db.collection("pastes").doc(code).set({ content: input })
+        .then(() => {
+          document.getElementById('codeValue').textContent = code;
+          generateQR(url);
+          showMedia(input);
+          history.replaceState(null, '', `?code=${code}`);
+        })
+        .catch((error) => {
+          alert("Error saving data: " + error);
         });
-
-        document.getElementById('codeValue').textContent = code;
-        generateQR(window.location.origin + window.location.pathname + '?code=' + code);
-        showMedia(input);
-      } catch (err) {
-        alert('Error saving paste: ' + err.message);
-      }
     }
 
     function generateQR(url) {
@@ -274,52 +258,30 @@
       }
     }
 
-    async function loadPaste(code) {
-      try {
-        const doc = await db.collection('pastes').doc(code).get();
-        if (doc.exists) {
-          const data = doc.data();
-          document.getElementById('input').value = data.content;
-          document.getElementById('codeValue').textContent = code;
-          generateQR(window.location.origin + window.location.pathname + '?code=' + code);
-          showMedia(data.content);
-        } else {
-          alert('No content found for that code.');
-        }
-      } catch (err) {
-        alert('Error loading paste: ' + err.message);
-      }
-    }
-
-    function loadCodeFromInput() {
-      const code = document.getElementById('manualCodeInput').value.trim();
-      if (!code) {
-        alert('Please enter a code.');
-        return;
-      }
-      loadPaste(code);
-    }
-
+    // Drag & drop logic
     const dropZone = document.getElementById('dropZone');
     const dropContainer = document.getElementById('dropContainer');
 
-    dropContainer.addEventListener('dragover', e => {
+    dropContainer.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropZone.style.display = 'flex';
     });
+
     dropContainer.addEventListener('dragleave', () => {
       dropZone.style.display = 'none';
     });
-    dropContainer.addEventListener('drop', e => {
+
+    dropContainer.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.style.display = 'none';
+
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onload = evt => {
+        reader.onload = function(evt) {
           const base64 = evt.target.result;
           document.getElementById('input').value = base64;
-          generateCode();
+          generateCode(base64);
         };
         reader.readAsDataURL(file);
       } else {
@@ -327,12 +289,23 @@
       }
     });
 
-    window.onload = () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('code')) {
-        loadPaste(params.get('code'));
-      }
-    };
+    // Load paste from Firestore if code in URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('code')) {
+      const code = params.get('code');
+      db.collection("pastes").doc(code).get().then(doc => {
+        if (doc.exists) {
+          const saved = doc.data().content;
+          document.getElementById('input').value = saved;
+          document.getElementById('codeValue').textContent = code;
+          const url = `${window.location.origin + window.location.pathname}?code=${code}`;
+          generateQR(url);
+          showMedia(saved);
+        } else {
+          alert('No content found for this code.');
+        }
+      });
+    }
   </script>
 </body>
 </html>
