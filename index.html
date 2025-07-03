@@ -10,7 +10,6 @@
   <script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXX" crossorigin="anonymous" async></script>
 
   <style>
-    /* Your styles here, same as before */
     * {
       box-sizing: border-box;
       margin: 0; padding: 0;
@@ -127,6 +126,26 @@
       background: rgba(100, 149, 237, 0.05);
       z-index: 10;
     }
+    #manualCodeInput {
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      border: 2px solid #ccc;
+      width: 60%;
+      font-size: 1rem;
+    }
+    #manualLoadBtn {
+      padding: 0.5rem 1.5rem;
+      border-radius: 2rem;
+      background: #6495ed;
+      color: #fff;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-left: 0.5rem;
+    }
+    #manualLoadBtn:hover {
+      background: #4b80e4;
+    }
     @keyframes fadeInSlide {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -146,6 +165,13 @@
     <div class="dropzone" id="dropZone">Drop image to paste</div>
     <h1><i class="fa-solid fa-paper-plane"></i> QuickPaste</h1>
     <textarea id="input" placeholder="Paste text, image or video link..."></textarea>
+
+    <!-- Manual code input to load paste -->
+    <div style="margin-top: 1rem;">
+      <input id="manualCodeInput" type="text" placeholder="Enter code to load" />
+      <button id="manualLoadBtn" onclick="loadCodeFromInput()">Load</button>
+    </div>
+
     <div class="code-display" id="code">Code: <span id="codeValue">-</span></div>
     <div class="media-preview" id="mediaPreview"></div>
     <div class="qr" id="qrSection" style="display: none;">
@@ -177,7 +203,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <script>
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDO6gyB_GMN8XOSjzIXfyTtbs4SjYgaAls",
       authDomain: "quickpaste-af1b8.firebaseapp.com",
@@ -188,12 +213,10 @@
       measurementId: "G-YNKFMGH0LE"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     firebase.analytics();
     const db = firebase.firestore();
 
-    // Generate 6-digit code & save paste to Firestore
     async function generateCode() {
       const input = document.getElementById('input').value.trim();
       if (!input) {
@@ -201,7 +224,6 @@
         return;
       }
 
-      // Create a random 6-digit code
       const code = Math.floor(100000 + Math.random() * 900000).toString();
 
       try {
@@ -252,7 +274,6 @@
       }
     }
 
-    // Load paste by code from Firestore on page load
     async function loadPaste(code) {
       try {
         const doc = await db.collection('pastes').doc(code).get();
@@ -270,7 +291,15 @@
       }
     }
 
-    // Drag & drop for images
+    function loadCodeFromInput() {
+      const code = document.getElementById('manualCodeInput').value.trim();
+      if (!code) {
+        alert('Please enter a code.');
+        return;
+      }
+      loadPaste(code);
+    }
+
     const dropZone = document.getElementById('dropZone');
     const dropContainer = document.getElementById('dropContainer');
 
@@ -298,7 +327,6 @@
       }
     });
 
-    // On page load, check for ?code=XXXXXX in URL and load paste
     window.onload = () => {
       const params = new URLSearchParams(window.location.search);
       if (params.has('code')) {
