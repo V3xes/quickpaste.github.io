@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>QuickPaste – Cross-device Paste Sharing</title>
-  <meta name="description" content="Paste text, images, or videos and access them anywhere with a code. No login needed." />
-  <meta name="robots" content="index, follow" />
+  <title>QuickPaste – Instantly Copy Text & Media</title>
+  <meta name="description" content="Paste text, images, or videos and generate a code to access them from any device. No login needed.">
+  <meta name="robots" content="index, follow">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXX" crossorigin="anonymous"></script>
+  <script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXX" crossorigin="anonymous" async></script>
+
   <style>
+    /* Your styles here, same as before */
     * {
       box-sizing: border-box;
       margin: 0; padding: 0;
@@ -18,7 +19,7 @@
       scroll-behavior: smooth;
     }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(135deg, #eef3ff, #dceeff);
       min-height: 100vh;
       display: flex;
@@ -69,11 +70,6 @@
       padding: 0.75rem 1rem;
       color: #003366;
       animation: fadeIn 0.8s ease;
-      user-select: all;
-      cursor: pointer;
-    }
-    .code-display:hover {
-      background: #d0e7ff;
     }
     .media-preview {
       margin-top: 1rem;
@@ -102,7 +98,7 @@
       font-size: 1.1rem;
       cursor: pointer;
       transition: background 0.3s ease, transform 0.2s ease;
-      box-shadow: 0 8px 20px rgba(100, 149, 237, 0.3);
+      box-shadow: 0 8px 20px rgba(100,149,237,0.3);
     }
     button:hover {
       background: #4b80e4;
@@ -150,16 +146,16 @@
     <div class="dropzone" id="dropZone">Drop image to paste</div>
     <h1><i class="fa-solid fa-paper-plane"></i> QuickPaste</h1>
     <textarea id="input" placeholder="Paste text, image or video link..."></textarea>
-    <div class="code-display" id="code" title="Click to copy code">Code: <span id="codeValue">-</span></div>
+    <div class="code-display" id="code">Code: <span id="codeValue">-</span></div>
     <div class="media-preview" id="mediaPreview"></div>
     <div class="qr" id="qrSection" style="display: none;">
       <p>Scan on your phone:</p>
       <canvas id="qr"></canvas>
     </div>
-    <button id="generateBtn">Generate Code</button>
+    <button onclick="generateCode()">Generate Code</button>
 
     <div class="ad-block">
-      <!-- Replace ca-pub-XXXXXX and SLOT_ID with your AdSense info after approval -->
+      <!-- Replace ca-pub-XXXXXX and SLOT_ID after AdSense approval -->
       <ins class="adsbygoogle"
            style="display:block"
            data-ad-client="ca-pub-XXXXXX"
@@ -172,11 +168,16 @@
     <div class="footer">Now supports drag & drop for images, text, and video links. All free, no login.</div>
   </div>
 
-  <script type="module">
-    import { initializeApp }  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    // Your Firebase config - replace with your own from Firebase Console
+  <!-- QRious for QR code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+  <script>
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDO6gyB_GMN8XOSjzIXfyTtbs4SjYgaAls",
       authDomain: "quickpaste-af1b8.firebaseapp.com",
@@ -187,116 +188,108 @@
       measurementId: "G-YNKFMGH0LE"
     };
 
-    // Initialize Firebase & Firestore
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+    const db = firebase.firestore();
 
-    // QR code generator instance
-    const qr = new QRious({
-      element: document.getElementById('qr'),
-      size: 180,
-      background: 'white',
-      foreground: '#003366',
-      level: 'H'
-    });
-
-    const input = document.getElementById('input');
-    const codeDisplay = document.getElementById('codeValue');
-    const codeBox = document.getElementById('code');
-    const mediaPreview = document.getElementById('mediaPreview');
-    const qrSection = document.getElementById('qrSection');
-    const dropZone = document.getElementById('dropZone');
-    const dropContainer = document.getElementById('dropContainer');
-    const generateBtn = document.getElementById('generateBtn');
-
-    // Helper to save paste to Firestore
-    async function savePaste(code, content) {
-      await setDoc(doc(db, "pastes", code), { content });
-    }
-
-    // Helper to load paste from Firestore
-    async function loadPaste(code) {
-      const snap = await getDoc(doc(db, "pastes", code));
-      return snap.exists() ? snap.data().content : null;
-    }
-
-    // Generate a 6-digit numeric code
-    function generateCodeValue() {
-      return Math.floor(100000 + Math.random() * 900000).toString();
-    }
-
-    // Show media preview based on content
-    function showMedia(content) {
-      mediaPreview.innerHTML = '';
-      mediaPreview.style.display = 'block';
-
-      if (content.startsWith('data:image/')) {
-        mediaPreview.innerHTML = `<img src="${content}" alt="Dropped image">`;
-      } else if (content.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
-        mediaPreview.innerHTML = `<img src="${content}" alt="Image preview">`;
-      } else if (content.match(/\.(mp4|webm)$/i)) {
-        mediaPreview.innerHTML = `<video controls><source src="${content}" type="video/mp4"></video>`;
-      } else if (content.includes('youtube.com') || content.includes('youtu.be')) {
-        const videoId = content.split('v=')[1] || content.split('/').pop();
-        mediaPreview.innerHTML = `<iframe width="100%" height="215" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (content.includes('vimeo.com')) {
-        const vimeoId = content.split('/').pop();
-        mediaPreview.innerHTML = `<iframe src="https://player.vimeo.com/video/${vimeoId}" width="100%" height="215" frameborder="0" allowfullscreen></iframe>`;
-      } else {
-        mediaPreview.style.display = 'none';
-      }
-    }
-
-    // Copy code text on clicking the code box
-    codeBox.addEventListener('click', () => {
-      if (codeDisplay.textContent && codeDisplay.textContent !== '-') {
-        navigator.clipboard.writeText(codeDisplay.textContent);
-        alert('Code copied to clipboard!');
-      }
-    });
-
-    // Generate code & save paste
+    // Generate 6-digit code & save paste to Firestore
     async function generateCode() {
-      const content = input.value.trim();
-      if (!content) {
-        alert('Please enter some text, image, or video link first.');
+      const input = document.getElementById('input').value.trim();
+      if (!input) {
+        alert('Please enter some text or link first.');
         return;
       }
 
-      const code = generateCodeValue();
-      await savePaste(code, content);
-      codeDisplay.textContent = code;
+      // Create a random 6-digit code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // Show QR code linking to ?code=...
-      const url = `${window.location.origin + window.location.pathname}?code=${code}`;
-      qr.value = url;
-      qrSection.style.display = 'block';
+      try {
+        await db.collection('pastes').doc(code).set({
+          content: input,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-      showMedia(content);
+        document.getElementById('codeValue').textContent = code;
+        generateQR(window.location.origin + window.location.pathname + '?code=' + code);
+        showMedia(input);
+      } catch (err) {
+        alert('Error saving paste: ' + err.message);
+      }
     }
 
-    generateBtn.addEventListener('click', generateCode);
+    function generateQR(url) {
+      const qr = new QRious({
+        element: document.getElementById('qr'),
+        value: url,
+        size: 180,
+        background: 'white',
+        foreground: '#003366',
+        level: 'H'
+      });
+      document.getElementById('qrSection').style.display = 'block';
+    }
 
-    // Drag & drop logic for images
+    function showMedia(content) {
+      const preview = document.getElementById('mediaPreview');
+      preview.innerHTML = '';
+      preview.style.display = 'block';
+
+      if (content.startsWith('data:image/')) {
+        preview.innerHTML = `<img src="${content}" alt="Dropped image">`;
+      } else if (content.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
+        preview.innerHTML = `<img src="${content}" alt="Image preview">`;
+      } else if (content.match(/\.(mp4|webm)$/i)) {
+        preview.innerHTML = `<video controls><source src="${content}" type="video/mp4"></video>`;
+      } else if (content.includes('youtube.com') || content.includes('youtu.be')) {
+        const videoId = content.split('v=')[1] || content.split('/').pop();
+        preview.innerHTML = `<iframe width="100%" height="215" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+      } else if (content.includes('vimeo.com')) {
+        const vimeoId = content.split('/').pop();
+        preview.innerHTML = `<iframe src="https://player.vimeo.com/video/${vimeoId}" width="100%" height="215" frameborder="0" allowfullscreen></iframe>`;
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+
+    // Load paste by code from Firestore on page load
+    async function loadPaste(code) {
+      try {
+        const doc = await db.collection('pastes').doc(code).get();
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('input').value = data.content;
+          document.getElementById('codeValue').textContent = code;
+          generateQR(window.location.origin + window.location.pathname + '?code=' + code);
+          showMedia(data.content);
+        } else {
+          alert('No content found for that code.');
+        }
+      } catch (err) {
+        alert('Error loading paste: ' + err.message);
+      }
+    }
+
+    // Drag & drop for images
+    const dropZone = document.getElementById('dropZone');
+    const dropContainer = document.getElementById('dropContainer');
+
     dropContainer.addEventListener('dragover', e => {
       e.preventDefault();
       dropZone.style.display = 'flex';
     });
-
-    dropContainer.addEventListener('dragleave', e => {
-      e.preventDefault();
+    dropContainer.addEventListener('dragleave', () => {
       dropZone.style.display = 'none';
     });
-
     dropContainer.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.style.display = 'none';
-
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
-          input.value = evt.target.result;
+        reader.onload = evt => {
+          const base64 = evt.target.result;
+          document.getElementById('input').value = base64;
           generateCode();
         };
         reader.readAsDataURL(file);
@@ -305,23 +298,13 @@
       }
     });
 
-    // On page load, check for ?code= in URL and load paste if exists
-    (async () => {
+    // On page load, check for ?code=XXXXXX in URL and load paste
+    window.onload = () => {
       const params = new URLSearchParams(window.location.search);
       if (params.has('code')) {
-        const code = params.get('code');
-        const content = await loadPaste(code);
-        if (content) {
-          input.value = content;
-          codeDisplay.textContent = code;
-          qr.value = window.location.href;
-          qrSection.style.display = 'block';
-          showMedia(content);
-        } else {
-          alert('No paste found for code: ' + code);
-        }
+        loadPaste(params.get('code'));
       }
-    })();
+    };
   </script>
 </body>
 </html>
