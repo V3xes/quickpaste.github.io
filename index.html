@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickPaste – Instantly Copy Text & Media</title>
+  <meta name="description" content="Paste text, images, or videos and generate a code to access them from any device. No login needed.">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="QuickPaste" />
+  <meta property="og:description" content="Send text or media across devices instantly with a short code." />
+  <meta property="og:url" content="https://yourusername.github.io/quickpaste/" />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXX" crossorigin="anonymous"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #eef3ff, #dceeff);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+    .container {
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      width: 100%;
+      max-width: 520px;
+      text-align: center;
+      animation: fadeInSlide 0.8s ease-out;
+      position: relative;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #333;
+      animation: floatIn 1s ease-out;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 1.25rem;
+      font-size: 1rem;
+      resize: none;
+      outline: none;
+      transition: border 0.25s, transform 0.2s;
+    }
+    textarea:focus {
+      border-color: #6495ed;
+      transform: scale(1.02);
+    }
+    .code-display {
+      margin-top: 1rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+      background: #f5faff;
+      border: 2px dashed #d0e0ff;
+      border-radius: 1.25rem;
+      padding: 0.75rem 1rem;
+      color: #003366;
+      animation: fadeIn 0.8s ease;
+    }
+    .media-preview {
+      margin-top: 1rem;
+      display: none;
+    }
+    .media-preview img, .media-preview video, .media-preview iframe {
+      max-width: 100%;
+      border-radius: 1rem;
+      margin-top: 0.5rem;
+    }
+    .qr {
+      margin-top: 1rem;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+    canvas {
+      margin-top: 0.5rem;
+      border-radius: 1rem;
+    }
+    button {
+      margin-top: 1.5rem;
+      background: #6495ed;
+      color: white;
+      border: none;
+      border-radius: 2rem;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 8px 20px rgba(100, 149, 237, 0.3);
+    }
+    button:hover {
+      background: #4b80e4;
+      transform: translateY(-2px);
+    }
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.875rem;
+      color: #777;
+      text-align: center;
+    }
+    .ad-block {
+      margin-top: 1rem;
+    }
+    .dropzone {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 2rem;
+      border: 2px dashed #6495ed;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: #6495ed;
+      background: rgba(100, 149, 237, 0.05);
+      z-index: 10;
+    }
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes floatIn {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="dropContainer">
+    <div class="dropzone" id="dropZone">Drop image to paste</div>
+    <h1><i class="fa-solid fa-paper-plane"></i> QuickPaste</h1>
+    <textarea id="input" placeholder="Paste text, image or video link..."></textarea>
+    <div class="code-display" id="code">Code: <span id="codeValue">-</span></div>
+    <div class="media-preview" id="mediaPreview"></div>
+    <div class="qr" id="qrSection" style="display: none;">
+      <p>Scan on your phone:</p>
+      <canvas id="qr"></canvas>
+    </div>
+    <button onclick="generateCode()">Generate Code</button>
+
+    <div class="ad-block">
+      <!-- Replace XXXXXX and SLOT_ID after AdSense approval -->
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-XXXXXX"
+           data-ad-slot="SLOT_ID"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <div class="footer">Now supports drag & drop for images, text, and video links. All free, no login.</div>
+  </div>
+
+  <script>
+    function generateCode(contentOverride = null) {
+      const input = contentOverride || document.getElementById('input').value.trim();
+      if (!input) {
+        alert('Please enter some text or link first.');
+        return;
+      }
+      const code = Math.floor(100000 + Math.random() * 900000);
+      const url = `${window.location.origin + window.location.pathname}?code=${code}`;
+      localStorage.setItem(`paste_${code}`, input);
+      document.getElementById('codeValue').textContent = code;
+      generateQR(url);
+      showMedia(input);
+    }
+
+    function generateQR(url) {
+      const qr = new QRious({
+        element: document.getElementById('qr'),
+        value: url,
+        size: 180,
+        background: 'white',
+        foreground: '#003366',
+        level: 'H'
+      });
+      document.getElementById('qrSection').style.display = 'block';
+    }
+
+    function showMedia(content) {
+      const preview = document.getElementById('mediaPreview');
+      preview.innerHTML = '';
+      preview.style.display = 'block';
+
+      if (content.startsWith('data:image/')) {
+        preview.innerHTML = `<img src="${content}" alt="Dropped image">`;
+      } else if (content.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
+        preview.innerHTML = `<img src="${content}" alt="Image preview">`;
+      } else if (content.match(/\.(mp4|webm)$/i)) {
+        preview.innerHTML = `<video controls><source src="${content}" type="video/mp4"></video>`;
+      } else if (content.includes('youtube.com') || content.includes('youtu.be')) {
+        const videoId = content.split('v=')[1] || content.split('/').pop();
+        preview.innerHTML = `<iframe width="100%" height="215" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+      } else if (content.includes('vimeo.com')) {
+        const vimeoId = content.split('/').pop();
+        preview.innerHTML = `<iframe src="https://player.vimeo.com/video/${vimeoId}" width="100%" height="215" frameborder="0" allowfullscreen></iframe>`;
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+
+    // Drag & drop logic
+    const dropZone = document.getElementById('dropZone');
+    const dropContainer = document.getElementById('dropContainer');
+
+    dropContainer.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.display = 'flex';
+    });
+
+    dropContainer.addEventListener('dragleave', () => {
+      dropZone.style.display = 'none';
+    });
+
+    dropContainer.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.display = 'none';
+
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const base64 = evt.target.result;
+          document.getElementById('input').value = base64;
+          generateCode(base64);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('Only image files are supported for drag & drop.');
+      }
+    });
+
+    // Load from localStorage
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('code')) {
+      const code = params.get('code');
+      const saved = localStorage.getItem(`paste_${code}`);
+      if (saved) {
+        document.getElementById('input').value = saved;
+        document.getElementById('codeValue').textContent = code;
+        const url = `${window.location.origin + window.location.pathname}?code=${code}`;
+        generateQR(url);
+        showMedia(saved);
+      }
+    }
+  </script>
+</body>
+</html>
