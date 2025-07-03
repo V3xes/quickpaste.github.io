@@ -3,97 +3,122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuickPaste – Instantly Share Text & Media Between Devices</title>
-
-  <!-- SEO Meta -->
+  <title>QuickPaste – Instantly Share Text & Media</title>
   <meta name="description" content="QuickPaste lets you instantly paste and share text, images, or video links across devices using a short code. No login required." />
-  <meta name="keywords" content="paste across devices, clipboard sharing, image sharing, quick paste, qr code clipboard, temporary storage, paste tool, cross-device transfer" />
+  <meta name="keywords" content="clipboard, quick paste, cross device sharing, QR code text share, free paste tool, copy paste anywhere" />
   <meta name="author" content="V3XES" />
   <meta name="robots" content="index, follow" />
   <meta name="google-site-verification" content="HmrQI75qn05QeBTgDEbJJQKnjqgQcUkUvSIY1UlAgJU" />
-
-  <!-- Open Graph (for social previews) -->
   <meta property="og:title" content="QuickPaste" />
-  <meta property="og:description" content="Paste text or images, generate a code, and view from any other device instantly." />
+  <meta property="og:description" content="Paste and share content across devices with one simple code." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://v3xes.github.io/quickpaste/" />
-  <meta property="og:image" content="https://v3xes.github.io/quickpaste/thumbnail.png" />
-
-  <!-- Favicon -->
   <link rel="icon" href="https://v3xes.github.io/quickpaste/favicon.png" type="image/png">
-
-  <!-- Fonts & Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <!-- QR Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXX" crossorigin="anonymous"></script>
-
   <style>
-    /* Your existing styles can go here */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(135deg, #eef3ff, #dceeff);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
       padding: 2rem;
     }
     .container {
       background: white;
       border-radius: 2rem;
-      padding: 2rem;
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
       max-width: 520px;
       width: 100%;
       text-align: center;
+      animation: fadeIn 0.6s ease-out;
     }
     h1 {
       font-size: 2rem;
       color: #333;
+      margin-bottom: 0.5rem;
+    }
+    p.description {
+      color: #666;
+      margin-bottom: 1rem;
     }
     textarea {
       width: 100%;
       height: 150px;
-      margin-top: 1rem;
       padding: 1rem;
       border: 2px solid #e0e0e0;
-      border-radius: 1rem;
+      border-radius: 1.25rem;
       font-size: 1rem;
+      resize: none;
+      outline: none;
+      transition: border 0.25s, transform 0.2s;
+    }
+    textarea:focus {
+      border-color: #6495ed;
+      transform: scale(1.02);
     }
     button {
-      margin-top: 1.5rem;
-      padding: 0.8rem 2rem;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 2rem;
+      margin-top: 1rem;
       background: #6495ed;
       color: white;
+      border: none;
+      border-radius: 2rem;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
       cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 8px 20px rgba(100, 149, 237, 0.3);
     }
-    .code-display, .footer, .media-preview, .qr, .ad-block {
+    button:hover {
+      background: #4b80e4;
+      transform: translateY(-2px);
+    }
+    .code-display {
       margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background: #f5faff;
+      border: 2px dashed #d0e0ff;
+      border-radius: 1.25rem;
+      padding: 0.75rem 1rem;
+      color: #003366;
+    }
+    .media-preview img, .media-preview video, .media-preview iframe {
+      margin-top: 1rem;
+      max-width: 100%;
+      border-radius: 1rem;
+    }
+    .qr canvas {
+      margin-top: 0.5rem;
+      border-radius: 1rem;
     }
     .footer {
-      font-size: 0.9rem;
-      color: #555;
+      margin-top: 2rem;
+      font-size: 0.875rem;
+      color: #777;
+    }
+    .ad-block {
+      margin-top: 1.5rem;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <main class="container">
-    <h1>QuickPaste</h1>
-    <p>Paste and instantly share text, images, or video links using a simple code. Works across devices. No login needed.</p>
-
-    <textarea id="input" placeholder="Paste text, image, or video link..."></textarea>
+  <div class="container">
+    <h1><i class="fa-solid fa-paper-plane"></i> QuickPaste</h1>
+    <p class="description">Instantly share text, image links, or videos across devices with just one code.</p>
+    <textarea id="input" placeholder="Paste text, image or video link..."></textarea>
     <div class="code-display">Code: <span id="codeValue">-</span></div>
     <div class="qr" id="qrSection" style="display: none;"><canvas id="qr"></canvas></div>
     <div class="media-preview" id="mediaPreview"></div>
@@ -109,15 +134,10 @@
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
-    <footer class="footer">
-      <h2>What is QuickPaste?</h2>
-      <p>QuickPaste is a free tool to share content between devices — text, images, or video links — via QR or 6-digit code. No login required. Just paste, share, and open anywhere.</p>
-      <p><strong>Tags:</strong> quick paste, clipboard sharing, QR transfer, cross device paste, instant media share</p>
-    </footer>
-  </main>
+    <div class="footer">Free & login-free clipboard. Works on all devices.</div>
+  </div>
 
   <script>
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDO6gyB_GMN8XOSjzIXfyTtbs4SjYgaAls",
       authDomain: "quickpaste-af1b8.firebaseapp.com",
@@ -133,14 +153,13 @@
 
     function generateCode() {
       const input = document.getElementById('input').value.trim();
-      if (!input) return alert('Please paste something first.');
+      if (!input) return alert('Paste something first.');
       const code = Math.floor(100000 + Math.random() * 900000).toString();
-      db.collection("pastes").doc(code).set({ content: input, created: Date.now() })
-        .then(() => {
-          document.getElementById('codeValue').textContent = code;
-          generateQR(`${location.origin + location.pathname}?code=${code}`);
-          showMedia(input);
-        });
+      db.collection("pastes").doc(code).set({ content: input, created: Date.now() }).then(() => {
+        document.getElementById('codeValue').textContent = code;
+        generateQR(`${location.origin + location.pathname}?code=${code}`);
+        showMedia(input);
+      });
     }
 
     function generateQR(url) {
@@ -158,21 +177,18 @@
     function showMedia(content) {
       const preview = document.getElementById('mediaPreview');
       preview.innerHTML = '';
-      if (content.match(/^data:image/)) {
-        preview.innerHTML = `<img src="${content}" style="max-width:100%;border-radius:1rem;">`;
-      } else if (content.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-        preview.innerHTML = `<img src="${content}" style="max-width:100%;border-radius:1rem;">`;
+      if (content.startsWith('data:image/') || content.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        preview.innerHTML = `<img src="${content}" alt="Image preview">`;
       } else if (content.match(/\.(mp4|webm)$/i)) {
-        preview.innerHTML = `<video controls style="max-width:100%;border-radius:1rem;"><source src="${content}" type="video/mp4"></video>`;
-      } else if (content.includes("youtube.com") || content.includes("youtu.be")) {
-        const id = content.split("v=")[1]?.split("&")[0] || content.split("/").pop();
-        preview.innerHTML = `<iframe width="100%" height="215" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`;
+        preview.innerHTML = `<video controls><source src="${content}" type="video/mp4"></video>`;
+      } else if (content.includes('youtube.com') || content.includes('youtu.be')) {
+        const videoId = content.split('v=')[1]?.split('&')[0] || content.split('/').pop();
+        preview.innerHTML = `<iframe width="100%" height="215" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
       } else {
-        preview.innerHTML = `<p style="color:#777;">Text content shared.</p>`;
+        preview.innerHTML = `<p>Text content shared.</p>`;
       }
     }
 
-    // Load shared content if code in URL
     const params = new URLSearchParams(location.search);
     if (params.has("code")) {
       const code = params.get("code");
