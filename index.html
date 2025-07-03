@@ -3,260 +3,163 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>QuickPaste – Instantly Copy Text & Media</title>
-  <meta name="description" content="Paste text, images, or videos and generate a code to access them from any device. No login needed.">
-  <meta name="robots" content="index, follow">
-  <meta property="og:title" content="QuickPaste" />
-  <meta property="og:description" content="Send text or media across devices instantly with a short code." />
-  <meta property="og:url" content="https://yourusername.github.io/quickpaste/" />
-  <meta property="og:type" content="website" />
+  <title>QuickPaste – Cross-device Paste Sharing</title>
+  <meta name="description" content="Paste text, images, or videos and access them anywhere with a code. No login needed." />
+  <meta name="robots" content="index, follow" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXX" crossorigin="anonymous"></script>
-
   <style>
-    /* Reset and basics */
-    *, *::before, *::after {
+    * {
       box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+    html {
+      scroll-behavior: smooth;
     }
     body {
-      margin: 0;
-      background: linear-gradient(135deg, #eef3ff, #dceeff);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #eef3ff, #dceeff);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      padding: 1.5rem;
+      padding: 2rem;
       overflow-x: hidden;
     }
-
     .container {
-      background: #fff;
+      background: white;
       border-radius: 2rem;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-      max-width: 520px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+      padding: 2rem;
       width: 100%;
-      padding: 2rem 2.5rem;
+      max-width: 520px;
       text-align: center;
+      animation: fadeInSlide 0.8s ease-out;
       position: relative;
-      animation: fadeInSlide 0.8s ease-out forwards;
     }
-
     h1 {
       font-size: 2rem;
-      color: #333;
       margin-bottom: 1rem;
-      animation: floatIn 1s ease-out forwards;
-      user-select: none;
+      color: #333;
+      animation: floatIn 1s ease-out;
     }
-
     textarea {
       width: 100%;
       height: 150px;
+      padding: 1rem;
       border: 2px solid #e0e0e0;
-      border-radius: 1.5rem;
-      padding: 1rem 1.25rem;
+      border-radius: 1.25rem;
       font-size: 1rem;
       resize: none;
-      outline-offset: 3px;
-      outline-color: #6495ed;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-      font-family: inherit;
-      color: #222;
+      outline: none;
+      transition: border 0.25s, transform 0.2s;
     }
     textarea:focus {
       border-color: #6495ed;
-      box-shadow: 0 0 8px rgba(100, 149, 237, 0.5);
       transform: scale(1.02);
     }
-
     .code-display {
-      margin-top: 1.25rem;
-      font-weight: 600;
+      margin-top: 1rem;
       font-size: 1.25rem;
+      font-weight: bold;
       background: #f5faff;
-      border: 2px dashed #c7d9ff;
-      border-radius: 1.5rem;
+      border: 2px dashed #d0e0ff;
+      border-radius: 1.25rem;
       padding: 0.75rem 1rem;
       color: #003366;
+      animation: fadeIn 0.8s ease;
       user-select: all;
-      animation: fadeIn 0.9s ease forwards;
+      cursor: pointer;
     }
-
+    .code-display:hover {
+      background: #d0e7ff;
+    }
     .media-preview {
       margin-top: 1rem;
-      border-radius: 1.5rem;
-      overflow: hidden;
-      animation: fadeIn 0.9s ease forwards;
+      display: none;
     }
-    .media-preview img,
-    .media-preview video,
-    .media-preview iframe {
-      width: 100%;
-      border-radius: 1.5rem;
-      display: block;
+    .media-preview img, .media-preview video, .media-preview iframe {
+      max-width: 100%;
+      border-radius: 1rem;
       margin-top: 0.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
     .qr {
       margin-top: 1rem;
-      animation: fadeIn 0.9s ease forwards;
-      user-select: none;
+      animation: fadeIn 0.8s ease-in-out;
     }
-    .qr p {
-      margin: 0 0 0.25rem 0;
-      color: #444;
-      font-size: 0.9rem;
-      user-select: none;
+    canvas {
+      margin-top: 0.5rem;
+      border-radius: 1rem;
     }
-    canvas#qr {
-      border-radius: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      display: block;
-      margin: 0 auto;
-    }
-
-    .code-entry {
-      margin-top: 1.75rem;
-      display: flex;
-      gap: 0.75rem;
-      justify-content: center;
-      align-items: center;
-      animation: fadeIn 1s ease forwards;
-    }
-    .code-entry input {
-      width: 50%;
-      padding: 0.65rem 1rem;
-      font-size: 1rem;
-      border-radius: 1.5rem;
-      border: 2px solid #ccc;
-      text-align: center;
-      font-family: inherit;
-      color: #222;
-      outline-offset: 3px;
-      outline-color: #6495ed;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    .code-entry input:focus {
-      border-color: #6495ed;
-      box-shadow: 0 0 8px rgba(100, 149, 237, 0.5);
-    }
-    .code-entry button {
-      padding: 0.65rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 1.5rem;
-      border: none;
-      cursor: pointer;
-      background: #4CAF50;
-      color: white;
-      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
-      transition: background 0.3s ease, transform 0.15s ease;
-      user-select: none;
-    }
-    .code-entry button:hover {
-      background: #43a047;
-      transform: translateY(-2px);
-    }
-    .code-entry button:active {
-      transform: translateY(0);
-    }
-
-    button.generate-btn {
-      margin-top: 1.75rem;
+    button {
+      margin-top: 1.5rem;
       background: #6495ed;
       color: white;
       border: none;
       border-radius: 2rem;
-      padding: 0.9rem 2.5rem;
-      font-size: 1.15rem;
-      font-weight: 700;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(100, 149, 237, 0.3);
       transition: background 0.3s ease, transform 0.2s ease;
-      user-select: none;
+      box-shadow: 0 8px 20px rgba(100, 149, 237, 0.3);
     }
-    button.generate-btn:hover {
+    button:hover {
       background: #4b80e4;
-      transform: translateY(-3px);
+      transform: translateY(-2px);
     }
-    button.generate-btn:active {
-      transform: translateY(0);
-    }
-
-    .ad-block {
-      margin-top: 1.75rem;
-      user-select: none;
-    }
-
     .footer {
       margin-top: 2rem;
       font-size: 0.875rem;
-      color: #666;
-      user-select: none;
+      color: #777;
+      text-align: center;
     }
-
+    .ad-block {
+      margin-top: 1rem;
+    }
     .dropzone {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
       border-radius: 2rem;
       border: 2px dashed #6495ed;
-      background: rgba(100, 149, 237, 0.05);
       display: none;
       align-items: center;
       justify-content: center;
       font-size: 1.25rem;
       color: #6495ed;
+      background: rgba(100, 149, 237, 0.05);
       z-index: 10;
-      user-select: none;
-      pointer-events: none;
     }
-
-    /* Animations */
     @keyframes fadeInSlide {
-      from {opacity: 0; transform: translateY(20px);}
-      to {opacity: 1; transform: translateY(0);}
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     @keyframes fadeIn {
-      from {opacity: 0;}
-      to {opacity: 1;}
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     @keyframes floatIn {
-      from {opacity: 0; transform: translateY(-20px);}
-      to {opacity: 1; transform: translateY(0);}
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
   <div class="container" id="dropContainer">
     <div class="dropzone" id="dropZone">Drop image to paste</div>
-
     <h1><i class="fa-solid fa-paper-plane"></i> QuickPaste</h1>
-
     <textarea id="input" placeholder="Paste text, image or video link..."></textarea>
-
-    <div class="code-display" id="code">Code: <span id="codeValue">-</span></div>
-
+    <div class="code-display" id="code" title="Click to copy code">Code: <span id="codeValue">-</span></div>
     <div class="media-preview" id="mediaPreview"></div>
-
     <div class="qr" id="qrSection" style="display: none;">
       <p>Scan on your phone:</p>
       <canvas id="qr"></canvas>
-      <p style="font-size: 0.85rem; color: #555;">Or visit on another device and paste code below:</p>
     </div>
-
-    <div class="code-entry">
-      <input type="text" id="codeInput" placeholder="Enter code here" autocomplete="off" />
-      <button onclick="loadCode()">Load</button>
-    </div>
-
-    <button class="generate-btn" onclick="generateCode()">Generate Code</button>
+    <button id="generateBtn">Generate Code</button>
 
     <div class="ad-block">
-      <!-- Replace XXXXXX and SLOT_ID after AdSense approval -->
+      <!-- Replace ca-pub-XXXXXX and SLOT_ID with your AdSense info after approval -->
       <ins class="adsbygoogle"
            style="display:block"
            data-ad-client="ca-pub-XXXXXX"
@@ -266,90 +169,126 @@
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
-    <div class="footer">
-      Now supports drag & drop for images, text, and video links. All free, no login.
-    </div>
+    <div class="footer">Now supports drag & drop for images, text, and video links. All free, no login.</div>
   </div>
 
-  <script>
-    function generateCode(contentOverride = null) {
-      const input = contentOverride || document.getElementById('input').value.trim();
-      if (!input) {
-        alert('Please enter some text or link first.');
-        return;
-      }
-      const code = Math.floor(100000 + Math.random() * 900000);
-      const url = `${window.location.origin + window.location.pathname}?code=${code}`;
-      localStorage.setItem(`paste_${code}`, input);
-      document.getElementById('codeValue').textContent = code;
-      generateQR(url);
-      showMedia(input);
-    }
+  <script type="module">
+    import { initializeApp }  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    function generateQR(url) {
-      const qr = new QRious({
-        element: document.getElementById('qr'),
-        value: url,
-        size: 180,
-        background: 'white',
-        foreground: '#003366',
-        level: 'H'
-      });
-      document.getElementById('qrSection').style.display = 'block';
-    }
+    // Your Firebase config - replace with your own from Firebase Console
+    const firebaseConfig = {
+      apiKey: "AIzaSyDO6gyB_GMN8XOSjzIXfyTtbs4SjYgaAls",
+      authDomain: "quickpaste-af1b8.firebaseapp.com",
+      projectId: "quickpaste-af1b8",
+      storageBucket: "quickpaste-af1b8.firebasestorage.app",
+      messagingSenderId: "197671751474",
+      appId: "1:197671751474:web:01e45e024c2bb47831112b",
+      measurementId: "G-YNKFMGH0LE"
+    };
 
-    function showMedia(content) {
-      const preview = document.getElementById('mediaPreview');
-      preview.innerHTML = '';
-      preview.style.display = 'block';
+    // Initialize Firebase & Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-      if (content.startsWith('data:image/')) {
-        preview.innerHTML = `<img src="${content}" alt="Dropped image">`;
-      } else if (content.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
-        preview.innerHTML = `<img src="${content}" alt="Image preview">`;
-      } else if (content.match(/\.(mp4|webm)$/i)) {
-        preview.innerHTML = `<video controls><source src="${content}" type="video/mp4"></video>`;
-      } else if (content.includes('youtube.com') || content.includes('youtu.be')) {
-        const videoId = content.split('v=')[1] || content.split('/').pop();
-        preview.innerHTML = `<iframe width="100%" height="215" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (content.includes('vimeo.com')) {
-        const vimeoId = content.split('/').pop();
-        preview.innerHTML = `<iframe src="https://player.vimeo.com/video/${vimeoId}" width="100%" height="215" frameborder="0" allowfullscreen></iframe>`;
-      } else {
-        preview.style.display = 'none';
-      }
-    }
+    // QR code generator instance
+    const qr = new QRious({
+      element: document.getElementById('qr'),
+      size: 180,
+      background: 'white',
+      foreground: '#003366',
+      level: 'H'
+    });
 
-    function loadCode() {
-      const code = document.getElementById('codeInput').value.trim();
-      if (!code) return alert("Enter a code to load content.");
-
-      const saved = localStorage.getItem(`paste_${code}`);
-      if (saved) {
-        document.getElementById('input').value = saved;
-        document.getElementById('codeValue').textContent = code;
-        const url = `${window.location.origin + window.location.pathname}?code=${code}`;
-        generateQR(url);
-        showMedia(saved);
-      } else {
-        alert("No content found for that code on this device.");
-      }
-    }
-
-    // Drag & drop logic
+    const input = document.getElementById('input');
+    const codeDisplay = document.getElementById('codeValue');
+    const codeBox = document.getElementById('code');
+    const mediaPreview = document.getElementById('mediaPreview');
+    const qrSection = document.getElementById('qrSection');
     const dropZone = document.getElementById('dropZone');
     const dropContainer = document.getElementById('dropContainer');
+    const generateBtn = document.getElementById('generateBtn');
 
-    dropContainer.addEventListener('dragover', (e) => {
+    // Helper to save paste to Firestore
+    async function savePaste(code, content) {
+      await setDoc(doc(db, "pastes", code), { content });
+    }
+
+    // Helper to load paste from Firestore
+    async function loadPaste(code) {
+      const snap = await getDoc(doc(db, "pastes", code));
+      return snap.exists() ? snap.data().content : null;
+    }
+
+    // Generate a 6-digit numeric code
+    function generateCodeValue() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    // Show media preview based on content
+    function showMedia(content) {
+      mediaPreview.innerHTML = '';
+      mediaPreview.style.display = 'block';
+
+      if (content.startsWith('data:image/')) {
+        mediaPreview.innerHTML = `<img src="${content}" alt="Dropped image">`;
+      } else if (content.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
+        mediaPreview.innerHTML = `<img src="${content}" alt="Image preview">`;
+      } else if (content.match(/\.(mp4|webm)$/i)) {
+        mediaPreview.innerHTML = `<video controls><source src="${content}" type="video/mp4"></video>`;
+      } else if (content.includes('youtube.com') || content.includes('youtu.be')) {
+        const videoId = content.split('v=')[1] || content.split('/').pop();
+        mediaPreview.innerHTML = `<iframe width="100%" height="215" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+      } else if (content.includes('vimeo.com')) {
+        const vimeoId = content.split('/').pop();
+        mediaPreview.innerHTML = `<iframe src="https://player.vimeo.com/video/${vimeoId}" width="100%" height="215" frameborder="0" allowfullscreen></iframe>`;
+      } else {
+        mediaPreview.style.display = 'none';
+      }
+    }
+
+    // Copy code text on clicking the code box
+    codeBox.addEventListener('click', () => {
+      if (codeDisplay.textContent && codeDisplay.textContent !== '-') {
+        navigator.clipboard.writeText(codeDisplay.textContent);
+        alert('Code copied to clipboard!');
+      }
+    });
+
+    // Generate code & save paste
+    async function generateCode() {
+      const content = input.value.trim();
+      if (!content) {
+        alert('Please enter some text, image, or video link first.');
+        return;
+      }
+
+      const code = generateCodeValue();
+      await savePaste(code, content);
+      codeDisplay.textContent = code;
+
+      // Show QR code linking to ?code=...
+      const url = `${window.location.origin + window.location.pathname}?code=${code}`;
+      qr.value = url;
+      qrSection.style.display = 'block';
+
+      showMedia(content);
+    }
+
+    generateBtn.addEventListener('click', generateCode);
+
+    // Drag & drop logic for images
+    dropContainer.addEventListener('dragover', e => {
       e.preventDefault();
       dropZone.style.display = 'flex';
     });
 
-    dropContainer.addEventListener('dragleave', () => {
+    dropContainer.addEventListener('dragleave', e => {
+      e.preventDefault();
       dropZone.style.display = 'none';
     });
 
-    dropContainer.addEventListener('drop', (e) => {
+    dropContainer.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.style.display = 'none';
 
@@ -357,9 +296,8 @@
       if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(evt) {
-          const base64 = evt.target.result;
-          document.getElementById('input').value = base64;
-          generateCode(base64);
+          input.value = evt.target.result;
+          generateCode();
         };
         reader.readAsDataURL(file);
       } else {
@@ -367,19 +305,23 @@
       }
     });
 
-    // Load from localStorage if URL contains code param
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('code')) {
-      const code = params.get('code');
-      const saved = localStorage.getItem(`paste_${code}`);
-      if (saved) {
-        document.getElementById('input').value = saved;
-        document.getElementById('codeValue').textContent = code;
-        const url = `${window.location.origin + window.location.pathname}?code=${code}`;
-        generateQR(url);
-        showMedia(saved);
+    // On page load, check for ?code= in URL and load paste if exists
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('code')) {
+        const code = params.get('code');
+        const content = await loadPaste(code);
+        if (content) {
+          input.value = content;
+          codeDisplay.textContent = code;
+          qr.value = window.location.href;
+          qrSection.style.display = 'block';
+          showMedia(content);
+        } else {
+          alert('No paste found for code: ' + code);
+        }
       }
-    }
+    })();
   </script>
 </body>
 </html>
