@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QuickPaste – Instantly Copy Text & Media</title>
   <meta name="description" content="Paste text, images, or videos and generate a code to access them from any device. No login needed.">
   <meta name="robots" content="index, follow">
@@ -10,47 +10,238 @@
   <meta property="og:description" content="Send text or media across devices instantly with a short code." />
   <meta property="og:url" content="https://yourusername.github.io/quickpaste/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXX" crossorigin="anonymous"></script>
+
   <style>
-    /* ... keep existing styles ... */
-    .code-entry {
-      margin-top: 1.5rem;
+    /* Reset and basics */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #eef3ff, #dceeff);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
-      gap: 0.5rem;
       justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      overflow-x: hidden;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 2rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      max-width: 520px;
+      width: 100%;
+      padding: 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      animation: fadeInSlide 0.8s ease-out forwards;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 1rem;
+      animation: floatIn 1s ease-out forwards;
+      user-select: none;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      border: 2px solid #e0e0e0;
+      border-radius: 1.5rem;
+      padding: 1rem 1.25rem;
+      font-size: 1rem;
+      resize: none;
+      outline-offset: 3px;
+      outline-color: #6495ed;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+      font-family: inherit;
+      color: #222;
+    }
+    textarea:focus {
+      border-color: #6495ed;
+      box-shadow: 0 0 8px rgba(100, 149, 237, 0.5);
+      transform: scale(1.02);
+    }
+
+    .code-display {
+      margin-top: 1.25rem;
+      font-weight: 600;
+      font-size: 1.25rem;
+      background: #f5faff;
+      border: 2px dashed #c7d9ff;
+      border-radius: 1.5rem;
+      padding: 0.75rem 1rem;
+      color: #003366;
+      user-select: all;
+      animation: fadeIn 0.9s ease forwards;
+    }
+
+    .media-preview {
+      margin-top: 1rem;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      animation: fadeIn 0.9s ease forwards;
+    }
+    .media-preview img,
+    .media-preview video,
+    .media-preview iframe {
+      width: 100%;
+      border-radius: 1.5rem;
+      display: block;
+      margin-top: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .qr {
+      margin-top: 1rem;
+      animation: fadeIn 0.9s ease forwards;
+      user-select: none;
+    }
+    .qr p {
+      margin: 0 0 0.25rem 0;
+      color: #444;
+      font-size: 0.9rem;
+      user-select: none;
+    }
+    canvas#qr {
+      border-radius: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      display: block;
+      margin: 0 auto;
+    }
+
+    .code-entry {
+      margin-top: 1.75rem;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 1s ease forwards;
     }
     .code-entry input {
-      padding: 0.6rem 1rem;
-      font-size: 1rem;
-      border-radius: 1rem;
-      border: 2px solid #ccc;
       width: 50%;
+      padding: 0.65rem 1rem;
+      font-size: 1rem;
+      border-radius: 1.5rem;
+      border: 2px solid #ccc;
       text-align: center;
+      font-family: inherit;
+      color: #222;
+      outline-offset: 3px;
+      outline-color: #6495ed;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .code-entry input:focus {
+      border-color: #6495ed;
+      box-shadow: 0 0 8px rgba(100, 149, 237, 0.5);
     }
     .code-entry button {
-      padding: 0.6rem 1rem;
+      padding: 0.65rem 1.5rem;
       font-size: 1rem;
-      border-radius: 1rem;
+      font-weight: 600;
+      border-radius: 1.5rem;
       border: none;
+      cursor: pointer;
       background: #4CAF50;
       color: white;
-      cursor: pointer;
-      transition: background 0.3s ease;
+      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+      transition: background 0.3s ease, transform 0.15s ease;
+      user-select: none;
     }
     .code-entry button:hover {
       background: #43a047;
+      transform: translateY(-2px);
+    }
+    .code-entry button:active {
+      transform: translateY(0);
+    }
+
+    button.generate-btn {
+      margin-top: 1.75rem;
+      background: #6495ed;
+      color: white;
+      border: none;
+      border-radius: 2rem;
+      padding: 0.9rem 2.5rem;
+      font-size: 1.15rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(100, 149, 237, 0.3);
+      transition: background 0.3s ease, transform 0.2s ease;
+      user-select: none;
+    }
+    button.generate-btn:hover {
+      background: #4b80e4;
+      transform: translateY(-3px);
+    }
+    button.generate-btn:active {
+      transform: translateY(0);
+    }
+
+    .ad-block {
+      margin-top: 1.75rem;
+      user-select: none;
+    }
+
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.875rem;
+      color: #666;
+      user-select: none;
+    }
+
+    .dropzone {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border-radius: 2rem;
+      border: 2px dashed #6495ed;
+      background: rgba(100, 149, 237, 0.05);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: #6495ed;
+      z-index: 10;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* Animations */
+    @keyframes fadeInSlide {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+    @keyframes floatIn {
+      from {opacity: 0; transform: translateY(-20px);}
+      to {opacity: 1; transform: translateY(0);}
     }
   </style>
 </head>
 <body>
   <div class="container" id="dropContainer">
     <div class="dropzone" id="dropZone">Drop image to paste</div>
+
     <h1><i class="fa-solid fa-paper-plane"></i> QuickPaste</h1>
+
     <textarea id="input" placeholder="Paste text, image or video link..."></textarea>
+
     <div class="code-display" id="code">Code: <span id="codeValue">-</span></div>
+
     <div class="media-preview" id="mediaPreview"></div>
+
     <div class="qr" id="qrSection" style="display: none;">
       <p>Scan on your phone:</p>
       <canvas id="qr"></canvas>
@@ -58,13 +249,14 @@
     </div>
 
     <div class="code-entry">
-      <input type="text" id="codeInput" placeholder="Enter code here">
+      <input type="text" id="codeInput" placeholder="Enter code here" autocomplete="off" />
       <button onclick="loadCode()">Load</button>
     </div>
 
-    <button onclick="generateCode()">Generate Code</button>
+    <button class="generate-btn" onclick="generateCode()">Generate Code</button>
 
     <div class="ad-block">
+      <!-- Replace XXXXXX and SLOT_ID after AdSense approval -->
       <ins class="adsbygoogle"
            style="display:block"
            data-ad-client="ca-pub-XXXXXX"
@@ -74,7 +266,9 @@
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
-    <div class="footer">Now supports drag & drop for images, text, and video links. All free, no login.</div>
+    <div class="footer">
+      Now supports drag & drop for images, text, and video links. All free, no login.
+    </div>
   </div>
 
   <script>
@@ -173,7 +367,7 @@
       }
     });
 
-    // Load from localStorage
+    // Load from localStorage if URL contains code param
     const params = new URLSearchParams(window.location.search);
     if (params.has('code')) {
       const code = params.get('code');
