@@ -1,56 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- ... meta and styles remain same as previous ... -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QuickPaste – Instantly Share Text & Media</title>
-  <!-- ... all your meta, CSS and script includes ... -->
+  <meta name="description" content="QuickPaste lets you instantly paste and share text, images, or video links across devices using a short code. No login required." />
+  <meta name="keywords" content="clipboard, quick paste, cross device sharing, QR code text share, free paste tool, copy paste anywhere" />
+  <meta name="author" content="V3XES" />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:title" content="QuickPaste" />
+  <meta property="og:description" content="Paste and share content across devices with one simple code." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://v3xes.github.io/quickpaste/" />
+  <link rel="icon" href="https://v3xes.github.io/quickpaste/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXX" crossorigin="anonymous"></script>
   <style>
-    /* Same styles from previous version (container, buttons, modal, etc) */
-    /* ... (copy from previous response) ... */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #eef3ff, #dceeff);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      color: #333;
+    }
+    .container {
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+      padding: 2rem 2.5rem;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      animation: fadeIn 0.6s ease-out;
+      position: relative;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #003366;
+    }
+    p.description {
+      color: #666;
+      margin-bottom: 1rem;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 1.25rem;
+      font-size: 1rem;
+      resize: none;
+      outline: none;
+      transition: border 0.25s, transform 0.2s;
+    }
+    textarea:focus {
+      border-color: #6495ed;
+      transform: scale(1.02);
+    }
+    button {
+      margin-top: 1rem;
+      background: #6495ed;
+      color: white;
+      border: none;
+      border-radius: 2rem;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 8px 20px rgba(100, 149, 237, 0.3);
+    }
+    button:disabled {
+      background: #a0b9f9;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    button:hover:not(:disabled) {
+      background: #4b80e4;
+      transform: translateY(-2px);
+    }
+    .code-display {
+      margin-top: 1rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      background: #f5faff;
+      border: 2px dashed #d0e0ff;
+      border-radius: 1.25rem;
+      padding: 0.75rem 1rem;
+      color: #003366;
+      user-select: all;
+    }
+    .media-preview img,
+    .media-preview video,
+    .media-preview iframe {
+      margin-top: 1rem;
+      max-width: 100%;
+      border-radius: 1rem;
+    }
+    .qr canvas {
+      margin-top: 0.75rem;
+      border-radius: 1rem;
+    }
+    .timer-section {
+      margin-top: 1.75rem;
+      font-size: 1.1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      user-select: none;
+    }
+    .timer-display {
+      font-family: monospace;
+      font-weight: 700;
+      color: #004080;
+      min-width: 60px;
+      text-align: center;
+    }
+    .footer {
+      margin-top: 2.5rem;
+      font-size: 0.875rem;
+      color: #777;
+    }
+    .ad-block {
+      margin-top: 1.5rem;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Modal styling */
+    #adModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #adContent {
+      background: white;
+      padding: 2rem 2.5rem;
+      border-radius: 1.5rem;
+      max-width: 320px;
+      width: 90%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      animation: fadeIn 0.4s ease forwards;
+      position: relative;
+    }
+    #adContent p {
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      color: #003366;
+      font-weight: 600;
+    }
+    #adTimer {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #6495ed;
+      margin-bottom: 1.5rem;
+      user-select: none;
+    }
+    #adCloseBtn {
+      background: #6495ed;
+      border: none;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.75rem 2rem;
+      border-radius: 1.5rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #adCloseBtn:disabled {
+      background: #a0b9f9;
+      cursor: not-allowed;
+    }
+    #adCloseBtn:hover:not(:disabled) {
+      background: #4b80e4;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.5rem 1.8rem;
+      }
+      h1 {
+        font-size: 1.6rem;
+      }
+      textarea {
+        height: 120px;
+      }
+      #adContent {
+        padding: 1.5rem 2rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- same HTML content as before -->
+  <div class="container" role="main" aria-label="QuickPaste Application">
     <h1><i class="fa-solid fa-paper-plane"></i> QuickPaste</h1>
-    <p class="description">Instantly share text, image or video links across devices with just one code.</p>
-    <textarea id="input" placeholder="Paste text, image or video link..."></textarea>
-    <div class="code-display">Code: <span id="codeValue">-</span></div>
-    <div class="qr" id="qrSection" style="display: none;">
+    <p class="description">
+      Instantly share text, image or video links across devices with just one code.
+    </p>
+    <textarea
+      id="input"
+      placeholder="Paste text, image or video link..."
+      aria-label="Input paste content"
+    ></textarea>
+    <div class="code-display" aria-live="polite">
+      Code: <span id="codeValue" aria-atomic="true">-</span>
+    </div>
+    <div class="qr" id="qrSection" style="display: none" aria-hidden="true">
       <canvas id="qr"></canvas>
     </div>
-    <div class="media-preview" id="mediaPreview"></div>
-    <button id="generateBtn">Generate Code</button>
+    <div class="media-preview" id="mediaPreview" aria-live="polite"></div>
+    <button id="generateBtn" aria-describedby="timerDisplay" aria-disabled="false">
+      Generate Code
+    </button>
+
     <div class="timer-section" title="Cooldown timer">
       Cooldown: <span class="timer-display" id="timerDisplay">--:--</span>
-      <button id="watchAdBtn" title="Watch an ad to reset cooldown">▶️ Watch Ad to Reset</button>
+      <button id="watchAdBtn" title="Watch an ad to reset cooldown timer">
+        ▶️ Watch Ad to Reset
+      </button>
     </div>
-    <div class="ad-block">
-      <!-- Your adsense or ad code here -->
-      <ins class="adsbygoogle"
-           style="display:block"
-           data-ad-client="ca-pub-XXXXXXX"
-           data-ad-slot="SLOT_ID"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+    <div class="ad-block" aria-label="Advertisement">
+      <!-- Replace 'ca-pub-XXXXXXX' and 'SLOT_ID' with your actual Adsense info -->
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-XXXXXXX"
+        data-ad-slot="SLOT_ID"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      ></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
     </div>
-    <div class="footer">Free & login-free clipboard. Works on all devices.</div>
+
+    <div class="footer" role="contentinfo">Free & login-free clipboard. Works on all devices.</div>
   </div>
 
-  <!-- Modal for ad simulation -->
+  <!-- Ad Modal -->
   <div id="adModal" aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1">
     <div id="adContent">
       <p>Watch this ad to reset your cooldown timer.</p>
-      <div id="adTimer">15</div>
+      <div id="adTimer" aria-live="polite" aria-atomic="true">15</div>
       <button id="adCloseBtn" disabled>Close Ad</button>
     </div>
   </div>
 
   <script>
-    // Firebase initialization here (same as before)
+    // Firebase config and init
     const firebaseConfig = {
       apiKey: "AIzaSyDO6gyB_GMN8XOSjzIXfyTtbs4SjYgaAls",
       authDomain: "quickpaste-af1b8.firebaseapp.com",
@@ -58,49 +284,61 @@
       storageBucket: "quickpaste-af1b8.appspot.com",
       messagingSenderId: "197671751474",
       appId: "1:197671474:web:01e45e024c2bb47831112b",
-      measurementId: "G-YNKFMGH0LE"
+      measurementId: "G-YNKFMGH0LE",
     };
     firebase.initializeApp(firebaseConfig);
     firebase.analytics();
     const db = firebase.firestore();
 
-    const TIMER_DURATION_MS = 10 * 60 * 1000; // 10 mins cooldown
-    const TIMER_STORAGE_KEY = 'quickpasteTimerEnd';
+    // Timer constants
+    const TIMER_DURATION_MS = 10 * 60 * 1000; // 10 minutes
+    const TIMER_STORAGE_KEY = "quickpasteTimerEnd";
+
+    // Elements
+    const timerDisplay = document.getElementById("timerDisplay");
+    const watchAdBtn = document.getElementById("watchAdBtn");
+    const generateBtn = document.getElementById("generateBtn");
+    const adModal = document.getElementById("adModal");
+    const adTimerEl = document.getElementById("adTimer");
+    const adCloseBtn = document.getElementById("adCloseBtn");
+    const inputEl = document.getElementById("input");
+    const codeValueEl = document.getElementById("codeValue");
+    const qrSection = document.getElementById("qrSection");
+    const mediaPreview = document.getElementById("mediaPreview");
+
+    // Variables
     let timerEnd = localStorage.getItem(TIMER_STORAGE_KEY);
     timerEnd = timerEnd ? parseInt(timerEnd, 10) : 0;
-
-    const timerDisplay = document.getElementById('timerDisplay');
-    const watchAdBtn = document.getElementById('watchAdBtn');
-    const generateBtn = document.getElementById('generateBtn');
-    const adModal = document.getElementById('adModal');
-    const adTimerEl = document.getElementById('adTimer');
-    const adCloseBtn = document.getElementById('adCloseBtn');
-
     let timerInterval;
     let timerPaused = false;
     let adInterval;
-    let adCountdown = 15; // 15 seconds
+    let adCountdown = 15;
 
+    // Update timer display and disable generate button if cooldown active
     function updateTimerDisplay() {
       if (!timerEnd || timerEnd < Date.now()) {
         timerDisplay.textContent = "00:00";
         generateBtn.disabled = false;
+        generateBtn.setAttribute("aria-disabled", "false");
         return false;
       }
       const diff = timerEnd - Date.now();
       if (diff <= 0) {
         timerDisplay.textContent = "00:00";
         generateBtn.disabled = false;
+        generateBtn.setAttribute("aria-disabled", "false");
         return false;
       }
       const minutes = Math.floor(diff / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
       timerDisplay.textContent =
-        `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+        `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
       generateBtn.disabled = true;
+      generateBtn.setAttribute("aria-disabled", "true");
       return true;
     }
 
+    // Start the cooldown timer
     function startTimer() {
       if (!timerEnd || timerEnd < Date.now()) {
         timerEnd = Date.now() + TIMER_DURATION_MS;
@@ -116,116 +354,129 @@
       updateTimerDisplay();
     }
 
+    // Open modal and simulate ad watch timer
     function openAdModal() {
-      adModal.style.display = 'flex';
-      adModal.setAttribute('aria-hidden', 'false');
+      adModal.style.display = "flex";
+      adModal.setAttribute("aria-hidden", "false");
       adCountdown = 15;
       adTimerEl.textContent = adCountdown;
       adCloseBtn.disabled = true;
-      adCloseBtn.style.cursor = 'not-allowed';
-      adCloseBtn.style.opacity = '0.5';
+      adCloseBtn.style.cursor = "not-allowed";
+      adCloseBtn.style.opacity = "0.5";
       timerPaused = true;
 
-      // Start countdown
       adInterval = setInterval(() => {
         adCountdown--;
         adTimerEl.textContent = adCountdown;
 
         if (adCountdown <= 0) {
           clearInterval(adInterval);
-          // Automatically close modal & reset timer after 15s even if no ad loaded
           closeAdModal();
         }
       }, 1000);
     }
 
+    // Close modal and reset timer
     function closeAdModal() {
-      adModal.style.display = 'none';
-      adModal.setAttribute('aria-hidden', 'true');
+      adModal.style.display = "none";
+      adModal.setAttribute("aria-hidden", "true");
       timerPaused = false;
       resetTimer();
     }
 
-    watchAdBtn.addEventListener('click', () => {
-      openAdModal();
-    });
-
-    adCloseBtn.addEventListener('click', () => {
-      if (!adCloseBtn.disabled) closeAdModal();
-    });
-
+    // Reset cooldown timer to 10 mins from now
     function resetTimer() {
       timerEnd = Date.now() + TIMER_DURATION_MS;
       localStorage.setItem(TIMER_STORAGE_KEY, timerEnd);
       startTimer();
     }
 
-    // Paste & code gen logic same as before
-    const inputEl = document.getElementById('input');
-    const codeValueEl = document.getElementById('codeValue');
-    const qrSection = document.getElementById('qrSection');
-    const mediaPreview = document.getElementById('mediaPreview');
-
+    // Generate a 6-digit code and save paste data
     function generateCode() {
       const input = inputEl.value.trim();
-      if (!input) return alert('Paste something first.');
+      if (!input) {
+        alert("Paste something first.");
+        return;
+      }
       if (timerEnd && timerEnd > Date.now()) {
-        alert('Please wait for cooldown timer to finish or watch an ad to reset.');
+        alert("Please wait for cooldown timer to finish or watch an ad to reset.");
         return;
       }
       const code = Math.floor(100000 + Math.random() * 900000).toString();
-      db.collection("pastes").doc(code).set({ content: input, created: Date.now() }).then(() => {
-        codeValueEl.textContent = code;
-        generateQR(`${location.origin + location.pathname}?code=${code}`);
-        showMedia(input);
-        resetTimer();
-      }).catch(() => alert('Failed to save content, try again.'));
+      db.collection("pastes")
+        .doc(code)
+        .set({ content: input, created: Date.now() })
+        .then(() => {
+          codeValueEl.textContent = code;
+          generateQR(`${location.origin + location.pathname}?code=${code}`);
+          showMedia(input);
+          resetTimer();
+        })
+        .catch(() => alert("Failed to save content, try again."));
     }
 
+    // Generate QR code for the shared URL
     function generateQR(url) {
       new QRious({
-        element: document.getElementById('qr'),
+        element: document.getElementById("qr"),
         value: url,
         size: 180,
-        background: 'white',
-        foreground: '#003366',
-        level: 'H'
+        background: "white",
+        foreground: "#003366",
+        level: "H",
       });
-      qrSection.style.display = 'block';
+      qrSection.style.display = "block";
+      qrSection.setAttribute("aria-hidden", "false");
     }
 
+    // Show media preview for images, videos, YouTube links, or plain text
     function showMedia(content) {
-      mediaPreview.innerHTML = '';
-      if (content.startsWith('data:image/') || content.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+      mediaPreview.innerHTML = "";
+      if (content.startsWith("data:image/") || content.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
         mediaPreview.innerHTML = `<img src="${content}" alt="Image preview" />`;
       } else if (content.match(/\.(mp4|webm)$/i)) {
         mediaPreview.innerHTML = `<video controls><source src="${content}" type="video/mp4" /></video>`;
-      } else if (content.includes('youtube.com') || content.includes('youtu.be')) {
-        const videoId = content.split('v=')[1]?.split('&')[0] || content.split('/').pop();
+      } else if (content.includes("youtube.com") || content.includes("youtu.be")) {
+        const videoId = content.split("v=")[1]?.split("&")[0] || content.split("/").pop();
         mediaPreview.innerHTML = `<iframe width="100%" height="215" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
       } else {
         mediaPreview.innerHTML = `<p>Text content shared.</p>`;
       }
     }
 
+    // On page load, check for code in URL and load data if exists
     const params = new URLSearchParams(location.search);
     if (params.has("code")) {
       const code = params.get("code");
-      db.collection("pastes").doc(code).get().then(doc => {
-        if (doc.exists) {
-          const data = doc.data().content;
-          inputEl.value = data;
-          codeValueEl.textContent = code;
-          generateQR(`${location.origin + location.pathname}?code=${code}`);
-          showMedia(data);
-        } else {
-          alert("No content found for that code.");
-        }
-      });
+      db.collection("pastes")
+        .doc(code)
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            const data = doc.data().content;
+            inputEl.value = data;
+            codeValueEl.textContent = code;
+            generateQR(`${location.origin + location.pathname}?code=${code}`);
+            showMedia(data);
+          } else {
+            alert("No content found for that code.");
+          }
+        });
     }
 
+    // Event listeners
+    watchAdBtn.addEventListener("click", () => {
+      openAdModal();
+    });
+
+    adCloseBtn.addEventListener("click", () => {
+      if (!adCloseBtn.disabled) closeAdModal();
+    });
+
+    generateBtn.addEventListener("click", generateCode);
+
+    // Start the cooldown timer on load
     startTimer();
-    generateBtn.addEventListener('click', generateCode);
   </script>
 </body>
 </html>
